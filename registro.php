@@ -5,6 +5,12 @@ include "includes/conexion.php";
 $mensaje = "";
 $tipoMensaje = "";   
 $accion = $_POST["accion"] ?? "";
+$preguntas = [
+    "¿Cómo se llamaba tu primera mascota?",
+    "¿En qué ciudad naciste?",
+    "¿Cuál es tu comida favorita?",
+    "¿Cómo se llamaba tu escuela primaria?"
+];
 
 
 if (isset($_GET["salir"])) {
@@ -57,10 +63,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         $nombre = trim($_POST["nombre"] ?? "");
         $password2 = $_POST["password2"] ?? "";
+        $pregunta = $_POST["pregunta"] ?? "";
+        $respuesta = trim($_POST["respuesta"] ?? "");
 
-        if ($nombre === "" || $email === "" || $password === "") {
+        if ($nombre === "" || $email === "" || $password === "" || $pregunta === "" || $respuesta === "") {
 
             $mensaje = "Todos los campos son obligatorios.";
+            $tipoMensaje = "error";
+        } elseif (!in_array($pregunta, $preguntas)) {
+
+            $mensaje = "Elegí una pregunta de seguridad válida.";
             $tipoMensaje = "error";
 
         } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -93,8 +105,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
                 $hash = password_hash($password, PASSWORD_DEFAULT);
 
-                $stmt = $conexion->prepare("INSERT INTO usuarios (nombre, email, password) VALUES (?, ?, ?)");
-                $stmt->bind_param("sss", $nombre, $email, $hash);
+                $hashRespuesta = password_hash(mb_strtolower($respuesta), PASSWORD_DEFAULT);
+
+                $stmt = $conexion->prepare("INSERT INTO usuarios (nombre, email, password, preguntaSeguridad, respuestaSeguridad) VALUES (?, ?, ?, ?, ?)");
+                $stmt->bind_param("sssss", $nombre, $email, $hash, $pregunta, $hashRespuesta);
 
                 if ($stmt->execute()) {
                     $mensaje = "Tu cuenta fue creada. Ya podés iniciar sesión.";
@@ -315,7 +329,31 @@ include "includes/header.php";
                                 </div>
 
                             </div>
+                            <div class="mb-3">
+                                <label for="reg-pregunta" class="form-label">Pregunta de seguridad</label>
+                                <select id="reg-pregunta" name="pregunta" class="form-select" required>
+                                    <option value="">Elegí una pregunta</option>
+                                    <?php foreach ($preguntas as $p) { ?>
+                                        <option value="<?php echo htmlspecialchars($p); ?>"
+                                            <?php echo valorPrevio("pregunta", "registro", $accion) === htmlspecialchars($p) ? "selected" : ""; ?>>
+                                            <?php echo htmlspecialchars($p); ?>
+                                        </option>
+                                    <?php } ?>
+                                </select>
+                            </div>
 
+                            <div class="mb-4">
+                                <label for="reg-respuesta" class="form-label">Respuesta</label>
+                                <input
+                                    type="text"
+                                    id="reg-respuesta"
+                                    name="respuesta"
+                                    class="form-control"
+                                    placeholder="Tu respuesta"
+                                    required
+                                >
+                                <small class="text-muted">La vas a usar si olvidás tu contraseña.</small>
+                            </div>
                             <button type="submit" class="btn-lumiere btn-lumiere--outline-dark w-100">
                                 CREAR CUENTA
                             </button>
