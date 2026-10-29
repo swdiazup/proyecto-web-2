@@ -186,8 +186,15 @@ $precio = number_format($producto["precio"], 0, ",", ".");
                         <div class="d-grid gap-2">
 
                             <a
-                                href="contacto.php?modelo=<?php echo urlencode($producto["nombre"]); ?>"
+                                href="carrito.php?agregar=<?php echo $producto["id"]; ?>"
                                 class="btn-lumiere btn-producto"
+                            >   
+                                <i class="bi bi-bag"></i> AGREGAR AL CARRITO
+                            </a>
+
+                            <a
+                                href="contacto.php?modelo=<?php echo urlencode($producto["nombre"]); ?>"
+                                class="btn-lumiere btn-producto-secundario"
                             >
                                 CONSULTAR MODELO
                             </a>
@@ -196,7 +203,7 @@ $precio = number_format($producto["precio"], 0, ",", ".");
                                 href="favoritos.php?id=<?php echo $producto["id"]; ?>"
                                 class="btn-lumiere btn-producto-secundario"
                             >
-                                ♡ GUARDAR EN FAVORITOS
+                                <i class="bi bi-heart"></i> GUARDAR EN FAVORITOS
                             </a>
 
                         </div>
