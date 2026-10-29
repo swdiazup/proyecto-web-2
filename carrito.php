@@ -84,6 +84,66 @@ if ($usuarioActivo) {
     }
 
 
+    // FINALIZAR COMPRA: guarda el pedido y vacía el carrito
+    if (isset($_POST["finalizar"])) {
+
+        $stmt = $conexion->prepare("
+            SELECT c.id_producto, c.cantidad, p.precio
+            FROM carrito c
+            INNER JOIN productos p ON p.id = c.id_producto
+            WHERE c.id_usuario = ?
+        ");
+        $stmt->bind_param("i", $idUsuario);
+        $stmt->execute();
+
+        $itemsPedido = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+        if (count($itemsPedido) > 0) {
+
+            $totalPedido = 0;
+            foreach ($itemsPedido as $item) {
+                $totalPedido += $item["precio"] * $item["cantidad"];
+            }
+
+            // Transacción: o se guarda todo, o no se guarda nada
+            $conexion->begin_transaction();
+
+            try {
+
+                // 1. Crear el pedido
+                $stmt = $conexion->prepare("INSERT INTO pedidos (id_usuario, total) VALUES (?, ?)");
+                $stmt->bind_param("id", $idUsuario, $totalPedido);
+                $stmt->execute();
+
+                $idPedido = $conexion->insert_id;
+
+                // 2. Guardar cada producto en pedido_detalle
+                $stmt = $conexion->prepare("INSERT INTO pedido_detalle (id_pedido, id_producto, cantidad, precio) VALUES (?, ?, ?, ?)");
+
+                foreach ($itemsPedido as $item) {
+                    $stmt->bind_param("iiid", $idPedido, $item["id_producto"], $item["cantidad"], $item["precio"]);
+                    $stmt->execute();
+                }
+
+                // 3. Vaciar el carrito
+                $stmt = $conexion->prepare("DELETE FROM carrito WHERE id_usuario = ?");
+                $stmt->bind_param("i", $idUsuario);
+                $stmt->execute();
+
+                $conexion->commit();
+
+                header("Location: carrito.php?pedido=" . $idPedido);
+                exit;
+
+            } catch (Exception $e) {
+
+                $conexion->rollback();
+                $errorPedido = "No pudimos procesar tu pedido. Probá de nuevo.";
+            }
+        }
+    }
+
+
     // LISTAR los productos del carrito (une carrito con productos)
     $stmt = $conexion->prepare("
         SELECT p.id, p.nombre, p.precio, p.imagen, p.coleccion, c.cantidad
@@ -143,6 +203,23 @@ include "includes/header.php";
                         </p>
                         <a href="registro.php" class="btn-lumiere btn-lumiere--dark">
                             INICIAR SESIÓN
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        <?php } elseif (isset($_GET["pedido"])) { ?>
+
+            <div class="row justify-content-center">
+                <div class="col-12 col-lg-6">
+                    <div class="registro-card text-center">
+                        <p class="eyebrow eyebrow--gold">PEDIDO N.º <?php echo (int) $_GET["pedido"]; ?></p>
+                        <h2>¡Gracias por tu compra!</h2>
+                        <p class="registro-card__intro">
+                            Recibimos tu pedido. Te vamos a confirmar disponibilidad y tiempos por email.
+                        </p>
+                        <a href="catalogo.php" class="btn-lumiere btn-lumiere--dark">
+                            VOLVER AL CATÁLOGO
                         </a>
                     </div>
                 </div>
@@ -233,6 +310,18 @@ include "includes/header.php";
                             <span>Total</span>
                             <span>$<?php echo number_format($total, 0, ",", "."); ?></span>
                         </div>
+
+                        <?php if (isset($errorPedido)) { ?>
+                            <div class="form-alert form-alert--error">
+                                <?php echo $errorPedido; ?>
+                            </div>
+                        <?php } ?>
+
+                        <form action="carrito.php" method="POST" class="mb-2">
+                            <button type="submit" name="finalizar" value="1" class="btn-lumiere btn-lumiere--dark w-100">
+                                FINALIZAR COMPRA
+                            </button>
+                        </form>
 
                         <a href="catalogo.php" class="btn-lumiere btn-lumiere--outline-dark w-100">
                             SEGUIR COMPRANDO
