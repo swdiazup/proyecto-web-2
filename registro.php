@@ -247,7 +247,7 @@ include "includes/header.php";
                             </div>
 
                             <div class="registro-card__row">
-                                <a href="contacto.php">¿Olvidaste tu contraseña?</a>
+                                <a href="recuperar.php">¿Olvidaste tu contraseña?</a>
                             </div>
 
                             <button type="submit" class="btn-lumiere btn-lumiere--dark w-100">
