@@ -1981,3 +1981,25 @@ em {
         width: 100%;
     }
 }
+
+.header-icon {
+  color: #F7F2E8;
+  font-size: 1.2rem;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.header-icon:hover {
+  color: #D4B483;
+}
+.avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #D4B483;
+  color: #0B1F3B !important;
+  font-family: 'Playfair Display', serif;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

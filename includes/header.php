@@ -1,3 +1,4 @@
+<?php if (session_status() === PHP_SESSION_NONE) session_start(); ?>
 <!DOCTYPE html>
 <html lang="es">
 
@@ -8,6 +9,7 @@
     <title>Lumière Ópticos</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -70,9 +72,17 @@
                 </ul>
 
                 <div class="header-actions d-flex align-items-center gap-3">
-                    <a href="catalogo.php" class="header-icon">⌕</a>
-                    <a href="favoritos.php" class="header-icon">♡</a>
-                    <a href="registro.php" class="header-icon">◯</a>
+                    <a href="catalogo.php" class="header-icon" aria-label="Buscar"><i class="bi bi-search"></i></a>
+                    <a href="favoritos.php" class="header-icon" aria-label="Favoritos"><i class="bi bi-heart"></i></a>
+                    <a href="carrito.php" class="header-icon" aria-label="Carrito"><i class="bi bi-bag"></i></a>
+
+                    <?php if (isset($_SESSION['usuario'])): ?>
+                        <a href="#" class="header-icon avatar" aria-label="Mi cuenta">
+                            <?php echo mb_strtoupper(mb_substr($_SESSION['usuario']['nombre'], 0, 1)); ?>
+                        </a>
+                    <?php else: ?>
+                        <a href="registro.php" class="header-icon" aria-label="Iniciar sesión"><i class="bi bi-person"></i></a>
+                    <?php endif; ?>
                 </div>
 
             </div>
